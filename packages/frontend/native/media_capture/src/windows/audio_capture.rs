@@ -22,7 +22,8 @@ use napi_derive::napi;
 use rubato::{FastFixedIn, PolynomialDegree, Resampler};
 
 const RESAMPLER_INPUT_CHUNK: usize = 1024; // samples per channel
-const TARGET_FRAME_SIZE: usize = 1024; // frame size returned to JS (in mono samples)
+const TARGET_FRAME_SIZE: usize = 1024; // frame size returned to JS (in mono
+                                       // samples)
 
 struct BufferedResampler {
   resampler: FastFixedIn<f32>,

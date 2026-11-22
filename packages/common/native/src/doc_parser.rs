@@ -157,7 +157,8 @@ pub fn parse_doc_from_binary(input: CrawlDocInput) -> Result<CrawlResult, ParseE
     let note_block_id = note_block.as_ref().and_then(get_block_id);
     let display_mode = determine_display_mode(note_block.as_ref());
 
-    // enqueue children first to keep traversal order similar to JS implementation
+    // enqueue children first to keep traversal order similar to JS
+    // implementation
     let mut child_ids = collect_child_ids(block);
     for child_id in child_ids.drain(..).rev() {
       if visited.insert(child_id.clone()) {
