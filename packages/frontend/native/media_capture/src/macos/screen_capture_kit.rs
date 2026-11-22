@@ -234,7 +234,8 @@ impl ApplicationInfo {
           },
         };
 
-        // Draw the original icon into draw_rect (using NSCompositingOperationCopy = 2)
+        // Draw the original icon into draw_rect (using
+        // NSCompositingOperationCopy = 2)
         let _: () = msg_send![icon, drawInRect: draw_rect, fromRect: from_rect, operation: 2u64, fraction: 1.0];
         let _: () = msg_send![resized_image, unlockFocus];
 
@@ -282,7 +283,9 @@ impl ApplicationInfo {
 
         // Get PNG data with properties
         let png_data: *mut AnyObject =
-          msg_send![bitmap, representationUsingType: 4u64, properties: properties]; // 4 = PNG
+          msg_send![bitmap, representationUsingType: 4u64, properties: properties]; // 4
+                                                                                    // =
+                                                                                    // PNG
 
         if png_data.is_null() {
           return Ok(Buffer::from(Vec::<u8>::new()));
