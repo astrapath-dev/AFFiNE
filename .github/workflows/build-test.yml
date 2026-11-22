@@ -184,7 +184,7 @@ jobs:
 
   e2e-blocksuite-test:
     name: E2E BlockSuite Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -215,7 +215,7 @@ jobs:
 
   e2e-blocksuite-cross-browser-test:
     name: E2E BlockSuite Cross Browser Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -281,7 +281,7 @@ jobs:
 
   e2e-mobile-test:
     name: E2E Mobile Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DISTRIBUTION: mobile
       IN_CI_TEST: true
@@ -311,7 +311,7 @@ jobs:
 
   unit-test:
     name: Unit Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - build-native
     env:
@@ -349,7 +349,7 @@ jobs:
 
   build-native:
     name: Build AFFiNE native (${{ matrix.spec.target }})
-    runs-on: ${{ matrix.spec.os }}
+    runs-on: ${{ matrix.spec.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.spec.os }}
     env:
       CARGO_PROFILE_RELEASE_DEBUG: '1'
     strategy:
@@ -438,7 +438,7 @@ jobs:
 
   build-server-native:
     name: Build Server native
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CARGO_PROFILE_RELEASE_DEBUG: '1'
     steps:
@@ -963,7 +963,7 @@ jobs:
 
   copilot-e2e-test:
     name: Frontend Copilot E2E Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DISTRIBUTION: web
       DATABASE_URL: postgresql://affine:affine@localhost:5432/affine
@@ -1052,7 +1052,7 @@ jobs:
 
   cloud-e2e-test:
     name: ${{ matrix.tests.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - build-server-native
       - build-native
@@ -1169,7 +1169,7 @@ jobs:
 
   desktop-test:
     name: Desktop Test (${{ matrix.spec.os }}, ${{ matrix.spec.platform }}, ${{ matrix.spec.arch }}, ${{ matrix.spec.target }}, ${{ matrix.spec.test }})
-    runs-on: ${{ matrix.spec.os }}
+    runs-on: ${{ matrix.spec.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.spec.os }}
     needs:
       - build-electron-renderer
       - build-native
@@ -1265,7 +1265,7 @@ jobs:
 
   desktop-bundle-check:
     name: Desktop bundle check (${{ matrix.spec.os }}, ${{ matrix.spec.platform }}, ${{ matrix.spec.arch }}, ${{ matrix.spec.target }}, ${{ matrix.spec.test }})
-    runs-on: ${{ matrix.spec.os }}
+    runs-on: ${{ matrix.spec.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.spec.os }}
     needs:
       - build-electron-renderer
       - build-native
