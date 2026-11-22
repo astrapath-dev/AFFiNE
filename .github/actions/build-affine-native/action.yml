@@ -1,0 +1,33 @@
+name: Build AFFiNE native
+description: Build and upload the frontend native module for the requested target.
+inputs:
+  target:
+    description: Rust target triple
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: ./.github/actions/setup-node
+      with:
+        extra-flags: workspaces focus @affine/native
+        electron-install: false
+    - name: Setup filename
+      id: filename
+      working-directory: ${{ github.workspace }}
+      shell: bash
+      run: |
+        export PLATFORM_ARCH_ABI=$(node -e "console.log(require('@napi-rs/cli').parseTriple('${{ inputs.target }}').platformArchABI)")
+        echo "filename=affine.$PLATFORM_ARCH_ABI.node" >> "$GITHUB_OUTPUT"
+    - name: Build AFFiNE native
+      uses: ./.github/actions/build-rust
+      with:
+        target: ${{ inputs.target }}
+        package: '@affine/native'
+    - name: Upload ${{ steps.filename.outputs.filename }}
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ steps.filename.outputs.filename }}
+        path: ${{ github.workspace }}/packages/frontend/native/${{ steps.filename.outputs.filename }}
+        if-no-files-found: error
