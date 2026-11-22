@@ -783,7 +783,7 @@ jobs:
       - name: fuzzing
         working-directory: ./packages/common/y-octo/utils
         run: |
-          cargo install cargo-fuzz
+          cargo +nightly install cargo-fuzz --version 0.13.2 --locked
           cargo +nightly fuzz run apply_update -- -max_total_time=30
           cargo +nightly fuzz run codec_doc_any_struct -- -max_total_time=30
           cargo +nightly fuzz run codec_doc_any -- -max_total_time=30
@@ -794,7 +794,6 @@ jobs:
           cargo +nightly fuzz run sync_message -- -max_total_time=30
           cargo +nightly fuzz run u64_decode -- -max_total_time=30
           cargo +nightly fuzz run u64_encode -- -max_total_time=30
-          cargo +nightly fuzz run apply_update -- -max_total_time=30
 
       - name: upload fuzz artifacts
         if: ${{ failure() }}

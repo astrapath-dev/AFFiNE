@@ -211,7 +211,8 @@ mod tests {
             h.parent.join("."),
             h.content
           );
-          // lost first update by unknown reason in asan test, skip it if asan enabled
+          // lost first update by unknown reason in asan test, skip it if asan
+          // enabled
           if option_env!("ASAN_OPTIONS").is_none() {
             let ret = &ret[i];
             assert_eq!(h.id, ret[0]);

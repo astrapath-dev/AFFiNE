@@ -277,14 +277,16 @@ fn escape_filename(path: &str) -> String {
 // Helper functions for Windows process management
 
 fn get_running_processes() -> Vec<u32> {
-  let mut processes_set = HashSet::new(); // Use HashSet to avoid duplicates from the start
+  let mut processes_set = HashSet::new(); // Use HashSet to avoid duplicates
+                                          // from the start
   unsafe {
     let h_snapshot_result = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
     let h_snapshot = match h_snapshot_result {
       Ok(handle) => {
         if handle == INVALID_HANDLE_VALUE {
-          // eprintln!("CreateToolhelp32Snapshot returned INVALID_HANDLE_VALUE");
+          // eprintln!("CreateToolhelp32Snapshot returned
+          // INVALID_HANDLE_VALUE");
           return Vec::new();
         }
         handle
@@ -311,7 +313,8 @@ fn get_running_processes() -> Vec<u32> {
     });
   }
   let mut processes_vec: Vec<u32> = processes_set.into_iter().collect();
-  processes_vec.sort_unstable(); // Sort for consistent ordering, though not strictly necessary for functionality
+  processes_vec.sort_unstable(); // Sort for consistent ordering, though not
+                                 // strictly necessary for functionality
   processes_vec
 }
 
