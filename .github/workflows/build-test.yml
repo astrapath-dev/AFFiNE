@@ -1192,7 +1192,7 @@ jobs:
               test: true,
             }
           - {
-              os: ubuntu-latest,
+              os: ubuntu-24.04,
               platform: linux,
               arch: x64,
               target: x86_64-unknown-linux-gnu,
@@ -1243,7 +1243,7 @@ jobs:
         run: yarn affine @affine/electron build
 
       - name: Run desktop tests
-        if: ${{ matrix.spec.os == 'ubuntu-latest' }}
+        if: ${{ matrix.spec.platform == 'linux' }}
         run: |
           # Workaround for Electron apps failing to initialize on Ubuntu 24.04 due to AppArmor restrictions
           # Disables unprivileged user namespaces restriction to allow Electron apps to run
@@ -1252,7 +1252,7 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- yarn affine @affine-test/affine-desktop e2e
 
       - name: Run desktop tests
-        if: ${{ matrix.spec.test && matrix.spec.os != 'ubuntu-latest' }}
+        if: ${{ matrix.spec.test && matrix.spec.platform != 'linux' }}
         run: yarn affine @affine-test/affine-desktop e2e
 
       - name: Upload test results
@@ -1288,7 +1288,7 @@ jobs:
               test: true,
             }
           - {
-              os: ubuntu-latest,
+              os: ubuntu-24.04,
               platform: linux,
               arch: x64,
               target: x86_64-unknown-linux-gnu,
