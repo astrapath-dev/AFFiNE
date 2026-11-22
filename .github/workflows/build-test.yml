@@ -41,7 +41,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript', 'typescript']
+        # CodeQL's javascript extractor also analyzes TypeScript.
+        language: ['javascript']
         project: ['affine', 'blocksuite']
 
     steps:
