@@ -483,6 +483,7 @@ jobs:
           name: web
           path: dist.tar.gz
           if-no-files-found: error
+          compression-level: 0
 
   native-unit-test:
     name: Native Unit Test
