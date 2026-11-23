@@ -144,6 +144,7 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
+          electron-install: false
           full-cache: true
 
       - name: Download server-native.node
