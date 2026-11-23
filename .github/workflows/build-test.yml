@@ -1135,6 +1135,7 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           playwright-install: true
+          electron-install: ${{ matrix.tests.shard == 'desktop' }}
           hard-link-nm: false
 
       - name: Download server-native.node
