@@ -148,31 +148,23 @@ runs:
       working-directory: ${{ steps.workspace-path.outputs.workspace_path }}
       run: echo "version=$(yarn why --json @playwright/test | grep -h 'workspace:.' | jq --raw-output '.children[].locator' | sed -e 's/@playwright\/test@.*://' | head -n 1)" >> $GITHUB_OUTPUT
 
-      # Attempt to restore the correct Playwright browser binaries based on the
-      # currently installed version of Playwright (The browser binary versions
-      # may change with Playwright versions).
-      # Note: Playwright's cache directory is hard coded because that's what it
-      # says to do in the docs. There doesn't appear to be a command that prints
-      # it out for us.
+    - name: Format Playwright browser cache key
+      id: playwright-browsers
+      if: ${{ inputs.playwright-install == 'true' }}
+      shell: bash
+      env:
+        PLAYWRIGHT_PLATFORM: ${{ inputs.playwright-platform }}
+      run: echo "key=${PLAYWRIGHT_PLATFORM//,/-}" >> "$GITHUB_OUTPUT"
+
+    # Cache the requested browser set and exact Playwright version. A
+    # Chromium-only shard must not populate the cache for WebKit shards.
     - uses: actions/cache@v4
-      id: playwright-cache
       if: ${{ inputs.playwright-install == 'true' }}
       with:
         path: ${{ steps.workspace-path.outputs.workspace_path }}/node_modules/.cache/ms-playwright
-        key: '${{ runner.os }}-${{ runner.arch }}-${{ steps.system-info.outputs.name }}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.version }}-playwright-${{ steps.playwright-version.outputs.version }}'
-        # As a fallback, if the Playwright version has changed, try use the
-        # most recently cached version. There's a good chance that at least one
-        # of the browser binary versions haven't been updated, so Playwright can
-        # skip installing that in the next step.
-        # Note: When falling back to an old cache, `cache-hit` (used below)
-        # will be `false`. This allows us to restore the potentially out of
-        # date cache, but still let Playwright decide if it needs to download
-        # new binaries or not.
-        restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-${{ steps.system-info.outputs.name }}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.version }}-playwright-
+        key: '${{ runner.os }}-${{ runner.arch }}-${{ steps.system-info.outputs.name }}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.version }}-playwright-${{ steps.playwright-version.outputs.version }}-browsers-${{ steps.playwright-browsers.outputs.key }}'
 
-    # If the Playwright browser binaries weren't able to be restored, we tell
-    # playwright to install everything for us.
+    # Linux runners still need system packages on a browser-cache hit.
     - name: Install Playwright's dependencies
       shell: bash
       if: inputs.playwright-install == 'true'
