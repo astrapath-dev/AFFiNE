@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { setTimeout } from 'node:timers/promises';
 
 import test from 'ava';
 
@@ -14,6 +15,9 @@ const owner = await module.create(Mockers.User);
 const workspace = await module.create(Mockers.Workspace, {
   owner,
 });
+
+// The timestamp columns and change cursors have millisecond precision.
+const nextTimestamp = () => setTimeout(2);
 
 test.after.always(async () => {
   await module.close();
@@ -98,6 +102,7 @@ test('should update a comment', async t => {
     userId: owner.id,
   });
 
+  await nextTimestamp();
   const comment2 = await models.comment.update({
     id: comment1.id,
     content: {
@@ -147,6 +152,7 @@ test('should resolve a comment', async t => {
     userId: owner.id,
   });
 
+  await nextTimestamp();
   const comment2 = await models.comment.resolve({
     id: comment.id,
     resolved: true,
@@ -158,6 +164,7 @@ test('should resolve a comment', async t => {
   // updatedAt should be changed
   t.true(comment3!.updatedAt.getTime() > comment3!.createdAt.getTime());
 
+  await nextTimestamp();
   const comment4 = await models.comment.resolve({
     id: comment.id,
     resolved: false,
@@ -272,6 +279,7 @@ test('should update a reply', async t => {
     commentId: comment.id,
   });
 
+  await nextTimestamp();
   const reply2 = await models.comment.updateReply({
     id: reply.id,
     content: {
@@ -422,6 +430,7 @@ test('should list changes', async t => {
     userId: owner.id,
   });
 
+  await nextTimestamp();
   const comment2 = await models.comment.create({
     content: {
       type: 'paragraph',
@@ -441,6 +450,7 @@ test('should list changes', async t => {
     commentId: comment1.id,
   });
 
+  await nextTimestamp();
   const reply2 = await models.comment.createReply({
     userId: owner.id,
     content: {
@@ -476,6 +486,7 @@ test('should list changes', async t => {
   t.is(changes2[1].commentId, comment1.id);
 
   // update comment1
+  await nextTimestamp();
   const comment1Updated = await models.comment.update({
     id: comment1.id,
     content: {
@@ -493,8 +504,10 @@ test('should list changes', async t => {
   t.is(changes3[0].id, comment1Updated.id);
 
   // delete comment1 and reply1, update reply2
+  await nextTimestamp();
   await models.comment.delete(comment1.id);
   await models.comment.deleteReply(reply1.id);
+  await nextTimestamp();
   await models.comment.updateReply({
     id: reply2.id,
     content: {
