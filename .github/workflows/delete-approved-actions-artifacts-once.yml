@@ -1,0 +1,86 @@
+name: Delete approved Actions artifacts (one-off)
+on:
+  push:
+    branches: [ops/delete-approved-actions-artifacts-20261127]
+    paths: [".github/workflows/delete-approved-actions-artifacts-once.yml"]
+permissions: {}
+jobs:
+  delete-approved-artifacts:
+    if: github.repository == 'astrapath-dev/AFFiNE' && github.event_name == 'push' && github.ref == 'refs/heads/ops/delete-approved-actions-artifacts-20261127' && github.event.before == '8a7f1296eac14f317e9b8d6516ed07acc56a7826' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          token: ''
+      - name: Delete and verify selected Actions artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+          
+          REPO = "astrapath-dev/AFFiNE"
+          SELECTED = {14778349225, 14779206952, 14779086837, 14779196090, 14778211975, 14777662885, 14777972400, 14777613049, 14777612913, 14777682743, 14778335356, 14777548203, 14777443462, 14777272770, 14777757311, 14775618286, 14775672979, 14775662933, 14775343832, 14775273928, 14775343085, 14775910755, 14775800233, 14774174497, 14774688715, 14774429285, 14775345033, 14774703493, 14774771958, 14774279119, 14775265286, 14774822325, 14775160316, 14774562681, 14774262272, 14774059652, 14774094048, 14774766818, 14773564948, 14774716768, 14774885639, 14773684392, 14774565788, 14773294679, 14774755744, 14774820294, 14774665538, 14774077486}
+          assert os.environ["GITHUB_REPOSITORY"] == REPO
+          assert os.environ["GITHUB_API_URL"] == "https://api.github.com"
+          url = "https://api.github.com/repos/" + REPO + "/actions/artifacts"
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": "Bearer " + os.environ["GH_TOKEN"],
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "approved-actions-artifact-cleanup",
+          }
+          
+          def api(method, suffix=""):
+              req = urllib.request.Request(url + suffix, headers=headers, method=method)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return response.status, response.read()
+          
+          def inventory():
+              found = {}
+              for page in range(1, 51):
+                  _, body = api("GET", f"?per_page=100&page={page}")
+                  items = json.loads(body)["artifacts"]
+                  found.update((a["id"], a) for a in items)
+                  if len(items) < 100:
+                      return found
+              raise RuntimeError("Inventory larger than the one-off limit; nothing selected.")
+          
+          before = inventory()
+          selected = sorted(before if SELECTED is None else before.keys() & SELECTED)
+          print("CLEANUP_PLAN", json.dumps({"repo": REPO, "total_before": len(before), "ids": selected}), flush=True)
+          deleted = []
+          errors = []
+          for artifact_id in selected:
+              a = before[artifact_id]
+              if SELECTED is not None and not (a['name'].startswith('test-results-')):
+                  errors.append([artifact_id, "unexpected artifact name"])
+                  continue
+              try:
+                  status, _ = api("DELETE", f"/{artifact_id}")
+                  if status != 204:
+                      errors.append([artifact_id, status])
+                      continue
+                  deleted.append(artifact_id)
+                  print("ARTIFACT_DELETED", json.dumps({"id": artifact_id, "name": a["name"], "bytes": a["size_in_bytes"]}), flush=True)
+              except urllib.error.HTTPError as e:
+                  if e.code != 404:
+                      errors.append([artifact_id, e.code])
+          after = inventory()
+          remaining = sorted(after if SELECTED is None else after.keys() & SELECTED)
+          print("CLEANUP_RESULT", json.dumps({
+              "repo": REPO, "deleted_count": len(deleted),
+              "deleted_bytes": sum(before[i]["size_in_bytes"] for i in deleted),
+              "total_after": len(after), "remaining_target_ids": remaining, "errors": errors,
+          }), flush=True)
+          if remaining or errors:
+              raise SystemExit("Requested artifact deletion did not fully verify.")
+          PY
